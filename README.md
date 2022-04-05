@@ -6,7 +6,7 @@ Using Artificial Intelligence for medical image analysis
 
 ## 1. Mask Volume Folder
 
-The maskvolume.py module contains functionality that computes an estimated volume by dividing the mask into segments, where the width of each segment is used to compute a cylindrical volume. This is then added up to produce a total volume. The greater the number of segments, the better the aproximation, however this would be computationally more expensive.
+The maskvolume.py module contains functionality that computes an estimated volume by dividing the mask into segments(circular disks), where the width of each segment is used as a radius to compute a cylindrical volume. This is then added up to produce a total volume. The greater the number of segments, the better the aproximation, however this would be computationally more expensive.
 
 ### 1.1. Mask Volume Usage
 An example has been provided in main.py for calling the module.
@@ -35,7 +35,7 @@ With K=20 and use_bottom_midpoint = False (segments are relative to the green li
 ### 1.4. Future Additions:
 
 Note: the current code only approximates a volume from a mask obtained from either the Apical 2-chamber or Apical 4-chamber view and not both.
-Ideally, for a single LV mask, the volume could be computed using the length of segments from both views.
+Ideally, for a single LV mask, the volume could be computed by using the length of segments/discs from both views. However, instead of the disks being circular, they would be more elliptical, thus offering a better approximation of the LV volume.
 
 
 

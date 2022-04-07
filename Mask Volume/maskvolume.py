@@ -103,7 +103,7 @@ def get_mid(p1, p2):
 
 
 
-def get_mask_volume(mask, K=20, is_binary_image = True, use_bottom_midpoint = True):
+def get_mask_volume(mask, K=20, is_binary_image = True):
     '''
     Computes the volume of the mask with the assumption that the 
     the the width of the segments are used as the radius of a cylinder.
@@ -135,6 +135,8 @@ def get_mask_volume(mask, K=20, is_binary_image = True, use_bottom_midpoint = Tr
     None.
 
     '''
+
+    use_bottom_midpoint = True
 
     poly_points = None
     midpointline = None
@@ -337,11 +339,66 @@ def get_mask_volume(mask, K=20, is_binary_image = True, use_bottom_midpoint = Tr
                 width += get_dist(int_pt1, int_pt2)                
             
             #just append the first and last for now
-            segments.append((int_pts[0],int_pts[len(int_pts)-1])) 
+            p1 = int_pts[0]
+            p2 = int_pts[len(int_pts)-1]
+            ip1 = (float(p1.x),float(p1.y))
+            ip2 = (float(p2.x),float(p2.y))
+            segments.append((ip1,ip2)) 
         else:            
             continue        
         
-        vol += math.pi*width*width*h    
+        vol += math.pi*width*width*h   
+        
+    #move a little in the oppoiste direction to account for any missed
+    #part of the LV at te bottom
+    start = startPt
+    while(True):
+        end = get_p_at_d(start, (-v1norm[0], -v1norm[1]), h)        
+        vH = (end[0] - start[0], end[1] - start[1])
+        start = (end[0], end[1])
+        
+        #Rotate vect by 90 to get the horizontal cutting line
+        vPerp = (vH[1],vH[0]*-1.0)
+        vPerp_norm = get_norm(vPerp)
+
+        #Extend length of horizontal line to make sure it cuts
+        phoriz1 = get_p_at_d(end, vPerp_norm, -dr/2.0)
+        phoriz2 = get_p_at_d(end, vPerp_norm, dr/2.0)        
+        
+        p1 = Point(phoriz1[0], phoriz1[1])
+        p2 = Point(phoriz2[0], phoriz2[1])
+        int_pts = poly.intersection(Line(p1, p2))        
+        
+        if(len(int_pts) == 2):
+            int1 = int_pts[0]
+            int2 = int_pts[1]
+            int_pt1 = (float(int1.x),float(int1.y))
+            int_pt2 = (float(int2.x),float(int2.y))
+            width = get_dist(int_pt1, int_pt2)            
+            segments.append((int_pt1,int_pt2)) 
+            
+        elif (len(int_pts) > 2):                  
+            
+            for i in range(len(int_pts)-1):               
+                #if(i%2==1):
+                #    continue                
+                
+                coord1 = int_pts[i]
+                coord2 = int_pts[i+1]                
+                
+                int_pt1 = (float(coord1.x),float(coord1.y))
+                int_pt2 = (float(coord2.x),float(coord2.y))
+                width += get_dist(int_pt1, int_pt2)                
+            
+            #just append the first and last for now
+            p1 = int_pts[0]
+            p2 = int_pts[len(int_pts)-1]
+            ip1 = (float(p1.x),float(p1.y))
+            ip2 = (float(p2.x),float(p2.y))
+            segments.append((ip1,ip2)) 
+        else:
+        #if(len(int_pts) == 0):         
+            break
     
     return vol, poly_points, minmaxline, midpointline, segments
 

@@ -18,6 +18,7 @@ It is preferable to use get_mask_volume_quick.
 The code is dependent on the following external modules that may need to be installed.
 1. opencv
 2. sympy
+3. scikit-image
 
 ### 1.3. Display usage:
 

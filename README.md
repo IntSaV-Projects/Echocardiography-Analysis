@@ -20,16 +20,18 @@ The code is dependent on the following external modules that may need to be inst
 
 The purple line is the line from the max-point to the bottom mid-point of the LV.
 The green line is from the min-point to the max-point (i.e. longest distance between two points of the LV mask).
+Note: The volume is computed relative to the purple line only.
 
+Example 1:
 
-With K=20 and use_bottom_midpoint = True (segments are relative to the purple line) :
-
+With K=20 (segments are relative to the purple line) :
+Green line is used only for visualisation to see where the min-max is located.
 ![image](https://user-images.githubusercontent.com/16832291/161746218-46d932d7-cd3e-4252-9067-900cd60df148.png)
 
+Example 2:
 
-With K=20 and use_bottom_midpoint = False (segments are relative to the green line):
+![image](https://user-images.githubusercontent.com/16832291/162192735-7412bb44-400a-4348-84ec-a1583a04d2f7.png)
 
-![image](https://user-images.githubusercontent.com/16832291/161746430-87f15265-f0f9-46c0-8046-9ee4fe85e61e.png)
 
 
 ### 1.4. Future Additions:

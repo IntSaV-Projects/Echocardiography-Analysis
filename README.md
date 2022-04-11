@@ -10,6 +10,9 @@ The maskvolume.py module contains functionality that computes an estimated volum
 
 ### 1.1. Mask Volume Usage
 An example has been provided in main.py for calling the module.
+Note, get_mask_volume_quick is substantially faster than get_mask_volume.
+This is because get_mask_volume uses linear algebra to compute the line-polyline intersection whereas get_mask_volume_quick uses pixel iteration.
+It is preferable to use get_mask_volume_quick.
 
 ### 1.2. Prerequisites
 The code is dependent on the following external modules that may need to be installed.
@@ -26,6 +29,7 @@ Example 1:
 
 With K=20 (segments are relative to the purple line) :
 Green line is used only for visualisation to see where the min-max is located.
+
 ![image](https://user-images.githubusercontent.com/16832291/161746218-46d932d7-cd3e-4252-9067-900cd60df148.png)
 
 Example 2:

@@ -8,6 +8,7 @@ Created on Mon Apr  4 16:05:00 2022
 import cv2
 import numpy as np
 
+
 def get_rgb_image(predicted_mask):
 
     img_temp_np = np.zeros((512,512,3))
@@ -24,6 +25,7 @@ def get_rgb_image(predicted_mask):
     
     return img
 
+
 def draw_poly_on_image(img, coordinates, color, use_weight=True):
     pts = np.array(coordinates, np.int32)
     pts = pts.reshape((-1,1,2))
@@ -35,6 +37,15 @@ def draw_poly_on_image(img, coordinates, color, use_weight=True):
     img = cv2.polylines(img, [pts], True, color, thickness=weight)
     return img
 
+
+def fill_poly_on_image(img, coordinates, color):
+    
+    pts = np.array(coordinates, np.int32)
+    pts = pts.reshape((-1,1,2))
+    img = cv2.fillPoly(img, [pts], color)
+    return img
+
+
 def draw_line_on_image(img, x1, y1, x2, y2, color, use_weight=True):
     
     weight = 1
@@ -44,6 +55,7 @@ def draw_line_on_image(img, x1, y1, x2, y2, color, use_weight=True):
     img = cv2.line(img, (int(x1), int(y1)), (int(x2), int(y2)), color, thickness=weight)
     return img
 
+
 def draw_circle_on_image(img, x1, y1, radius, color, use_weight=True):
     
     weight = 1
@@ -52,6 +64,7 @@ def draw_circle_on_image(img, x1, y1, radius, color, use_weight=True):
         
     img = cv2.circle(img,(int(x1),int(y1)), radius, color, thickness=weight)
     return img
+
 
 def show_image(img):
     cv2.imshow('hello_world',img)

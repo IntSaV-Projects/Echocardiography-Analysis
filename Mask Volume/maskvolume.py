@@ -11,7 +11,7 @@ it is cylindrical.
 
 import cv2
 import math
-from sympy import Point, Polygon, Line
+from sympy import Point, Polygon, Line, Segment2D
 from drawhelper import *
 from skimage.draw import line
 
@@ -167,6 +167,8 @@ def get_mask_volume(mask, K=20, is_binary_image = True):
             largest_area = area
             largest_index_area = i
 
+    if(largest_area <= 0):
+        return 0, None, None, None, None
 
     #Get the shape/polyline of the largest area    
     poly_points = contours[largest_index_area]    
@@ -258,10 +260,10 @@ def get_mask_volume(mask, K=20, is_binary_image = True):
     true_mid = None
     #There should only be 2 points of intersection
     if(len(int_pts_temp) >= 2):
-        if(get_dist(mid_temp, int_pts_temp[0]) < get_dist(mid_temp, int_pts_temp[1])):
+        if(get_dist(mid_temp, int_pts_temp[0]) < get_dist(mid_temp, int_pts_temp[len(int_pts_temp)-1])):
             true_mid = int_pts_temp[0]
         else:
-            true_mid = int_pts_temp[1]
+            true_mid = int_pts_temp[len(int_pts_temp)-1]
     else:
         true_mid = mid_temp
     
@@ -327,7 +329,7 @@ def get_mask_volume(mask, K=20, is_binary_image = True):
             width = get_dist(int_pt1, int_pt2)            
             segments.append((int_pt1,int_pt2)) 
             
-        elif (len(int_pts) > 2):                  
+        elif (len(int_pts) > 2):       
             
             for i in range(len(int_pts)-1):                      
                 
@@ -343,13 +345,30 @@ def get_mask_volume(mask, K=20, is_binary_image = True):
             p2 = int_pts[len(int_pts)-1]
             ip1 = (float(p1.x),float(p1.y))
             ip2 = (float(p2.x),float(p2.y))
-            segments.append((ip1,ip2)) 
+            segments.append((ip1,ip2))
+            
+            #Alternate way below if the above code gives object Segment2d
+            
+            #just append the first and last for now
+            #p1 = int_pts[0]
+            #p2 = int_pts[len(int_pts)-1]
+            
+            #if isinstance(p1, Segment2D):
+            #    p1 = p1.points[0]
+            #if isinstance(p2, Segment2D):
+            #    p2 = p2.points[0]                
+            
+            #ip1 = (float(p1.x),float(p1.y))
+            #ip2 = (float(p2.x),float(p2.y))
+            #width = get_dist(ip1, ip2)   
+            #segments.append((ip1,ip2)) 
         else:
             #len(int_pts) is zero or one here
             has_intersections = False
             break
-            
-        vol += math.pi*width*width*h   
+        
+        rad = width/2.0
+        vol += math.pi*rad*rad*h   
     
     return vol, poly_points, minmaxline, midpointline, segments
 
@@ -366,8 +385,7 @@ def get_intersection(mask_rgb, poly_points, line_pt1, line_pt2):
     temp_mask_rgb = fill_poly_on_image(temp_mask_rgb, poly_points, (0,255,0))
     
     #cyan
-    temp_mask_rgb = draw_poly_on_image(temp_mask_rgb, poly_points, (255,255,0), use_weight = False)
-    temp_mask_rgb = draw_poly_on_image(temp_mask_rgb, poly_points, (255,255,0), use_weight = False)
+    temp_mask_rgb = draw_poly_on_image(temp_mask_rgb, poly_points, (255,255,0), use_weight = False)    
     
     pt1 = (int(line_pt1[0]), int(line_pt1[1]))
     pt2 = (int(line_pt2[0]), int(line_pt2[1]))
@@ -379,6 +397,12 @@ def get_intersection(mask_rgb, poly_points, line_pt1, line_pt2):
         coord = discrete_line[i]        
         
         if(abs(coord[1])>=temp_mask_rgb.shape[0] or abs(coord[0])>=temp_mask_rgb.shape[1]):
+            continue
+        
+        if(coord[0] <= 0):
+            continue
+        
+        if(coord[1] <= 0):
             continue
             
         pix = temp_mask_rgb[int(coord[1]), int(coord[0])]        
@@ -392,8 +416,8 @@ def get_intersection(mask_rgb, poly_points, line_pt1, line_pt2):
             elif(np.array_equal(prev_pix, np.asarray((0,255,0))) and np.array_equal(pix, np.asarray((255,0,0)))):
                 int_pts.append(coord)                
         
-        prev_pix = pix
-        
+        prev_pix = pix        
+    
     return int_pts
 
 
@@ -401,7 +425,7 @@ def get_intersection(mask_rgb, poly_points, line_pt1, line_pt2):
 def get_mask_volume_quick(mask, K=20, is_binary_image = True):
     '''
     Computes the volume of the mask with the assumption that the 
-    the the width of the segments are used as the radius of a cylinder.
+    width of the segments are used as the radius of a cylinder.
 
     Parameters
     ----------
@@ -461,6 +485,8 @@ def get_mask_volume_quick(mask, K=20, is_binary_image = True):
             largest_area = area
             largest_index_area = i
 
+    if(largest_area <= 0):
+        return 0, None, None, None, None
 
     #Get the shape/polyline of the largest area    
     poly_points = contours[largest_index_area]    
@@ -528,9 +554,8 @@ def get_mask_volume_quick(mask, K=20, is_binary_image = True):
     #Get the midpoint
     leftMost = poly_points[left_index][0]
     rightMost = poly_points[right_index][0]
-    mid_temp = get_mid(leftMost, rightMost)    
+    mid_temp = get_mid(leftMost, rightMost)        
     
-    #create sympy polygon object
     pts_temp = []
     for i in range(len(poly_points)):
         coord = poly_points[i][0]
@@ -546,7 +571,7 @@ def get_mask_volume_quick(mask, K=20, is_binary_image = True):
     
     #Find the true midpoint     
     p1_temp = get_p_at_d(maxP, v1norm, dr)
-    p2_temp = get_p_at_d(maxP, v1norm, -dr)    
+    p2_temp = get_p_at_d(maxP, v1norm, -dr*1.10)    
     
     int_pts_temp = get_intersection(mask_rgb, poly_points, p1_temp, p2_temp)   
     pts_len = len(int_pts_temp)
@@ -589,6 +614,7 @@ def get_mask_volume_quick(mask, K=20, is_binary_image = True):
     start = startPt
     has_intersections = True
     index = -1
+    blank_rgb = get_rgb_image(np.zeros((mask_rgb.shape[0],mask_rgb.shape[1])))
     while(has_intersections):        
         width = 0
         index += 1
@@ -614,7 +640,7 @@ def get_mask_volume_quick(mask, K=20, is_binary_image = True):
         
         p1 = phoriz1
         p2 = phoriz2    
-        int_pts = get_intersection(mask_rgb, poly_points, p1, p2)        
+        int_pts = get_intersection(blank_rgb, poly_points, p1, p2)        
         
         if(len(int_pts) == 2):
             int1 = int_pts[0]
@@ -637,7 +663,8 @@ def get_mask_volume_quick(mask, K=20, is_binary_image = True):
             has_intersections = False
             break        
         
-        vol += math.pi*width*width*h   
+        rad = width/2.0
+        vol += math.pi*rad*rad*h   
         
     return vol, poly_points, minmaxline, midpointline, segments
 
